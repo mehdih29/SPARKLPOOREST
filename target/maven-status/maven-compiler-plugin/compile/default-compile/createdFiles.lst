@@ -1,8 +1,13 @@
-HTTPFetchNumberPli.class
-main/java/kafka/KafkaProducer.class
 main/java/kafka/KafkaConsumer$1.class
 SendPostFunction.class
 main/java/kafka/KafkaConsumer$2.class
-main/java/kafka/KafkaConsumer$4.class
 main/java/kafka/KafkaConsumer$3.class
+main/java/spark/KafkaSparkWorker$2.class
+main/java/kafka/KafkaProducer.class
+HTTPFetchNumberPli.class
+main/java/kafka/KafkaConsumer$4.class
+main/java/spark/KafkaSparkWorker.class
+main/java/spark/KafkaSparkWorker$4.class
 main/java/kafka/KafkaConsumer.class
+main/java/spark/KafkaSparkWorker$1.class
+main/java/spark/KafkaSparkWorker$3.class

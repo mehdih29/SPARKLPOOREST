@@ -4,27 +4,81 @@ package main.java.kafka;
  * Created by mehdi on 9/14/15.
  */
 
-import java.io.File;
-import java.io.IOException;
-import java.util.UUID;
-import java.util.logging.FileHandler;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.apache.log4j.Logger;
 
-import org.apache.avro.Schema;
-import org.apache.avro.generic.GenericData;
-import org.apache.avro.generic.GenericRecord;
-import org.apache.avro.generic.GenericData.Record;
-import org.apache.avro.io.Decoder;
-import org.apache.avro.io.DecoderFactory;
-import org.apache.avro.specific.SpecificDatumReader;
+        import java.io.InputStream;
+        import java.io.InputStreamReader;
+        import java.io.BufferedReader;
+        import java.io.IOException;
+        import java.util.Properties;
+        import java.nio.charset.Charset;
 
-import kafka.consumer.ConsumerIterator;
-import kafka.consumer.KafkaStream;
+        import kafka.javaapi.producer.Producer;
+        import kafka.producer.KeyedMessage;
+        import kafka.producer.ProducerConfig;
 
+public class KafkaProducer implements Runnable
+{
+    private static final Logger LOGGER = Logger.getLogger(KafkaProducer.class);
+    private final Charset ENC = Charset.forName("UTF-8");
+    private final String topic;
 
-public class KafkaProducer {
+    private InputStream inputStream = null;
 
+    public KafkaProducer(String topic, InputStream stream)
+    {
+        this.topic = topic;
+        this.inputStream = stream;
+    }
 
-
+    public void run()
+    {
+        Properties props = new Properties();
+        props.put("metadata.broker.list", "localhost:9092");
+        props.put("serializer.class", "kafka.serializer.StringEncoder");
+        props.put("producer.type", "async");
+        ProducerConfig conf = new ProducerConfig(props);
+        Producer<Integer, String> producer = null;
+        BufferedReader rd = null;
+        try
+        {
+            try
+            {
+                rd = new BufferedReader(
+                        new InputStreamReader(this.inputStream, ENC));
+                String line = null;
+                LOGGER.debug("Producing messages");
+                producer = new Producer<Integer, String>(conf);
+                while ((line = rd.readLine()) != null)
+                {
+                    producer.send(new KeyedMessage<Integer, String>(
+                            this.topic, line));
+                }
+                LOGGER.debug("Done sending messages");
+            }
+            catch (IOException ex)
+            {
+                LOGGER.fatal("IO Error while producing messages", ex);
+                LOGGER.trace(null, ex);
+            }
+        }
+        catch (Exception ex)
+        {
+            LOGGER.fatal("Error while producing messages", ex);
+            LOGGER.trace(null, ex);
+        }
+        finally
+        {
+            try
+            {
+                if (rd != null) rd.close();
+                if (producer != null) producer.close();
+            }
+            catch (IOException ex)
+            {
+                LOGGER.fatal("IO error while cleaning up", ex);
+                LOGGER.trace(null, ex);
+            }
+        }
+    }
 }
