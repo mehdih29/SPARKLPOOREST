@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<archimate:model xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:archimate="http://www.archimatetool.com/archimate" name="(new model)" id="2b36da21" version="3.1.1">
+  <folder name="Business" id="82fe1ea8" type="business">
+    <element xsi:type="archimate:BusinessActor" id="ddb987ed" name="Business Actor"/>
+    <element xsi:type="archimate:BusinessRole" id="2a3102cb" name="Business Role"/>
+  </folder>
+  <folder name="Application" id="33ff5c6c" type="application">
+    <element xsi:type="archimate:ApplicationComponent" id="a4565f4b" name="POC Orest TAE"/>
+    <element xsi:type="archimate:ApplicationComponent" id="46f42b8b" name="SparkHTTPCpnNubmberOfPli"/>
+    <element xsi:type="archimate:ApplicationInterface" id="c92a9796" name="Kafka Interface"/>
+    <element xsi:type="archimate:ApplicationService" id="0cd60031" name="Kafka Interface"/>
+    <element xsi:type="archimate:ApplicationFunction" id="fb8e1614" name="requêter le CPN et construire les urls à récupérer"/>
+    <element xsi:type="archimate:ApplicationService" id="741d4581" name="Application Service"/>
+    <element xsi:type="archimate:DataObject" id="34698332" name="Données CPN"/>
+    <element xsi:type="archimate:ApplicationFunction" id="9aa82a10" name="requeter le CPN à partir des utl stockée dans le kafka Topic"/>
+    <element xsi:type="archimate:ApplicationComponent" id="162ec089" name="Kafka"/>
+    <element xsi:type="archimate:ApplicationInterface" id="6707e12c" name="SparkCPNInterface (copy)"/>
+    <element xsi:type="archimate:ApplicationFunction" id="b283ea47" name="Indexer les données dans Solr"/>
+    <element xsi:type="archimate:ApplicationInterface" id="e3ef56ec" name="Solr Interface"/>
+    <element xsi:type="archimate:ApplicationService" id="ecf669e8" name="Solr Interface"/>
+    <element xsi:type="archimate:ApplicationComponent" id="7ce16066" name="Solr"/>
+  </folder>
+  <folder name="Technology" id="fcc9e617" type="technology">
+    <element xsi:type="archimate:Node" id="64423653" name="Kafka"/>
+    <element xsi:type="archimate:InfrastructureInterface" id="04d0d6fa" name="Kafka Interface"/>
+    <element xsi:type="archimate:InfrastructureService" id="40947fb6" name="Kafka Service"/>
+    <element xsi:type="archimate:InfrastructureFunction" id="5ffadbe9" name="Topic Management"/>
+  </folder>
+  <folder name="Motivation" id="8d71cad0" type="motivation"/>
+  <folder name="Implementation &amp; Migration" id="53369796" type="implementation_migration"/>
+  <folder name="Connectors" id="d4defae7" type="connectors"/>
+  <folder name="Relations" id="9a6a5093" type="relations">
+    <element xsi:type="archimate:AssignmentRelationship" id="9876bb1d" source="ddb987ed" target="2a3102cb"/>
+    <element xsi:type="archimate:CompositionRelationship" id="72cf5b7b" source="162ec089" target="c92a9796"/>
+    <element xsi:type="archimate:AssignmentRelationship" id="90b74927" source="a4565f4b" target="fb8e1614"/>
+    <element xsi:type="archimate:AccessRelationship" id="09000d1c" source="fb8e1614" target="34698332"/>
+    <element xsi:type="archimate:CompositionRelationship" id="9757f79e" source="64423653" target="04d0d6fa"/>
+    <element xsi:type="archimate:AssignmentRelationship" id="22f8611a" source="04d0d6fa" target="40947fb6"/>
+    <element xsi:type="archimate:AssignmentRelationship" id="c324c70c" source="c92a9796" target="0cd60031"/>
+    <element xsi:type="archimate:RealisationRelationship" id="8cbe82ab" source="fb8e1614" target="0cd60031"/>
+    <element xsi:type="archimate:FlowRelationship" id="c6362f84" name="1- write urls in topic URLS" source="fb8e1614" target="0cd60031"/>
+    <element xsi:type="archimate:FlowRelationship" id="31e83593" name="2- consume Topic URLS &amp; Produce Topic Data" source="9aa82a10" target="0cd60031"/>
+    <element xsi:type="archimate:AccessRelationship" id="b139dae0" source="9aa82a10" target="34698332"/>
+    <element xsi:type="archimate:FlowRelationship" id="8ef04e0a" source="0cd60031" target="9aa82a10"/>
+    <element xsi:type="archimate:FlowRelationship" id="63905ac1" source="9aa82a10" target="0cd60031"/>
+    <element xsi:type="archimate:CompositionRelationship" id="9b4db661" source="7ce16066" target="e3ef56ec"/>
+    <element xsi:type="archimate:AssignmentRelationship" id="e1fb03ef" source="e3ef56ec" target="ecf669e8"/>
+    <element xsi:type="archimate:FlowRelationship" id="ea23d3f4" name="3- Consume Topic Data" source="b283ea47" target="0cd60031"/>
+    <element xsi:type="archimate:FlowRelationship" id="960075c6" name="4- indexer et stocker les données dans Solr" source="b283ea47" target="ecf669e8"/>
+  </folder>
+  <folder name="Views" id="89df9a3c" type="diagrams">
+    <element xsi:type="archimate:ArchimateDiagramModel" id="15585359" name="Default View">
+      <child xsi:type="archimate:DiagramObject" id="21efca26" textAlignment="2" archimateElement="a4565f4b">
+        <bounds x="816" y="579" width="120" height="55"/>
+        <sourceConnection xsi:type="archimate:Connection" id="0f9d4f92" source="21efca26" target="a44afebf" relationship="90b74927"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="c254f84d" textAlignment="2" targetConnections="74b3542f" archimateElement="c92a9796">
+        <bounds x="720" y="264" width="97" height="37"/>
+        <sourceConnection xsi:type="archimate:Connection" id="57264b9b" source="c254f84d" target="95d5c02b" relationship="c324c70c"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="95d5c02b" textAlignment="2" targetConnections="57264b9b 2d038d14 09db8a73 889d80b8" archimateElement="0cd60031">
+        <bounds x="526" y="264" width="109" height="37"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="a44afebf" textAlignment="2" targetConnections="0f9d4f92" archimateElement="fb8e1614">
+        <bounds x="600" y="576" width="134" height="61"/>
+        <sourceConnection xsi:type="archimate:Connection" id="e4fa2ada" source="a44afebf" target="e5ff76df" relationship="09000d1c"/>
+        <sourceConnection xsi:type="archimate:Connection" id="2d038d14" source="a44afebf" target="95d5c02b" relationship="c6362f84"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="e5ff76df" textAlignment="2" targetConnections="e4fa2ada bf3b6a47" archimateElement="34698332">
+        <bounds x="72" y="570" width="121" height="73"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="1b09d06f" textAlignment="2" archimateElement="9aa82a10">
+        <bounds x="468" y="480" width="121" height="73"/>
+        <sourceConnection xsi:type="archimate:Connection" id="bf3b6a47" source="1b09d06f" target="e5ff76df" relationship="b139dae0"/>
+        <sourceConnection xsi:type="archimate:Connection" id="09db8a73" source="1b09d06f" target="95d5c02b" relationship="31e83593"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="20d7da52" textAlignment="2" archimateElement="162ec089">
+        <bounds x="732" y="384" width="73" height="37"/>
+        <sourceConnection xsi:type="archimate:Connection" id="74b3542f" source="20d7da52" target="c254f84d" relationship="72cf5b7b"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="6c2c7666" textAlignment="2" archimateElement="b283ea47">
+        <bounds x="336" y="408" width="120" height="55"/>
+        <sourceConnection xsi:type="archimate:Connection" id="889d80b8" source="6c2c7666" target="95d5c02b" relationship="ea23d3f4"/>
+        <sourceConnection xsi:type="archimate:Connection" id="2ab33c7f" source="6c2c7666" target="57d39e9b" relationship="960075c6"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="9fbda924" textAlignment="2" targetConnections="247b2b04" archimateElement="e3ef56ec">
+        <bounds x="816" y="216" width="97" height="37"/>
+        <sourceConnection xsi:type="archimate:Connection" id="3124dbf9" source="9fbda924" target="57d39e9b" relationship="e1fb03ef"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="57d39e9b" textAlignment="2" targetConnections="3124dbf9 2ab33c7f" archimateElement="ecf669e8">
+        <bounds x="300" y="216" width="109" height="37"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="0e16b6ac" textAlignment="2" archimateElement="7ce16066">
+        <bounds x="840" y="384" width="73" height="37"/>
+        <sourceConnection xsi:type="archimate:Connection" id="247b2b04" source="0e16b6ac" target="9fbda924" relationship="9b4db661"/>
+      </child>
+    </element>
+  </folder>
+</archimate:model>
