@@ -6,13 +6,14 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.TimeZone;
-import java.util.Timer;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
+
+import main.java.com.arismore.poste.util.UniversalNamespaceCache;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -35,6 +36,10 @@ import org.xml.sax.SAXException;
 import kafka.javaapi.producer.Producer;
 import kafka.producer.KeyedMessage;
 import kafka.producer.ProducerConfig;
+import org.apache.spark.SparkConf;
+import org.apache.spark.streaming.api.java.*;
+import org.apache.spark.streaming.Durations;
+
 /**
  * Created by mehdi on 9/29/15.
  */
@@ -42,74 +47,79 @@ public class SparkJobsStarter {
 
 
     private static final long serialVersionUID = 2222111111L;
-    static String STREAMING_API_URL = "http://national.cpn.prd.sie.courrier.intra.laposte.fr/National/enveloppes/v1/externe?";
-    private static String SEP = "&";
-    private static String BEGINDATE = "dateDebut=";
-    private static String ENDDATE = "dateFin=";
-    private static String STARTINDEX = "startIndex=";
-    private static String COUNT = "count=";
-    private static int STEP = 1000;
+
     static Logger LOG = Logger.getLogger(SparkJobsStarter.class);
     private static String FILE_RECOVERY_WINDOWS = "/svdb/POC/_file_recovery_window";
-
+    private static DocumentBuilder builder = null;
 
     private static String topic = "urls";
     private static String catchingTopic = "catchingTopic";
     private static Producer<String, String> producer;
     private static Properties props = new Properties();
 
-    private static SimpleDateFormat formater = null;
-    private static Calendar cal = null;
 
- public static void main(String[] args) {
-        if (args.length < 2) {
+    public static void main(String[] args) {
+        if (args.length < 1) {
             System.err.println("Usage: DirectKafkaWordCount <brokers> <topics>\n" +
                     "  <brokers> is a list of one or more Kafka brokers\n" +
-                    "  <topics> is a list of one or more kafka topics to consume from\n\n");
+                    "  <topics> is a list of one or more kafka topics to consume from\n");
             System.exit(1);
         }
-        props.put("metadata.broker.list", args[0]);
-        props.put("serializer.class", "kafka.serializer.StringEncoder");
-        props.put("partitioner.class", "com.arismore.poste.kafka");
-        props.put("request.required.acks", "1");
-        ProducerConfig config = new ProducerConfig(props);
-        producer = new Producer<String, String>(config);
+        try {
+            SparkConf sparkConf = new SparkConf().setAppName("JobStarter");
+            JavaStreamingContext jssc = new JavaStreamingContext(sparkConf, Durations.seconds(60));
 
-     XPath xpath= XPathFactory.newInstance().newXPath();
-    DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-    factory = DocumentBuilderFactory.newInstance();
-    factory.setNamespaceAware(true);
+            String STREAMING_API_URL = "http://national.cpn.prd.sie.courrier.intra.laposte.fr/National/enveloppes/v1/externe?";
+            String SEP = "&";
+            String BEGINDATE = "dateDebut=";
+            String ENDDATE = "dateFin=";
+            String STARTINDEX = "startIndex=";
+            String COUNT = "count=";
+            int STEP = 1000;
 
-    try {
-        DocumentBuilder builder = factory.newDocumentBuilder();
-    } catch (ParserConfigurationException e) {
-        // TODO Auto-generated catch block
-        e.printStackTrace();
-    }
 
-     CloseableHttpClient client = HttpClientBuilder.create().build();
-     Date date = new Date();
+            props.put("metadata.broker.list", args[0]);
+            props.put("serializer.class", "kafka.serializer.StringEncoder");
+            //props.put("partitioner.class", "main.java.com.arismore.poste.kafka.TopicPartitioner");
+            //props.put("request.required.acks", "1");
+            ProducerConfig config = new ProducerConfig(props);
+            producer = new Producer<String, String>(config);
 
-     cal.setTime(date);
-     cal.add(Calendar.MINUTE, -6);
-     Date start = cal.getTime();
+            XPath xpath = XPathFactory.newInstance().newXPath();
+            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            factory.setNamespaceAware(true);
 
-     cal.setTime(date);
-     cal.add(Calendar.MINUTE, -5);
-     Date end = cal.getTime();
+            try {
+                builder = factory.newDocumentBuilder();
+            } catch (ParserConfigurationException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
 
-     formater = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm':00Z'");
-     formater.setTimeZone(TimeZone.getTimeZone("UTC"));
+            CloseableHttpClient client = HttpClientBuilder.create().build();
+            Date date = new Date();
 
-        String dateDebut = formater.format(start);
-        String dateFin = formater.format(end);
+            Calendar cal = null;
+            cal.setTime(date);
+            cal.add(Calendar.MINUTE, -6);
+            Date start = cal.getTime();
 
-        LOG.debug("processing " + dateDebut + "  " + dateFin);
+            cal.setTime(date);
+            cal.add(Calendar.MINUTE, -5);
+            Date end = cal.getTime();
 
-        HttpGet get = new HttpGet(STREAMING_API_URL + BEGINDATE + dateDebut
-                + SEP + ENDDATE + dateFin + SEP + STARTINDEX + "1" + SEP
-                + COUNT + "1");
-        HttpResponse response;
+            SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm':00Z'");
+            formatter.setTimeZone(TimeZone.getTimeZone("UTC"));
+
+            String dateDebut = formatter.format(start);
+            String dateFin = formatter.format(end);
+
+            LOG.debug("processing " + dateDebut + "  " + dateFin);
+
+            HttpGet get = new HttpGet(STREAMING_API_URL + BEGINDATE + dateDebut
+                    + SEP + ENDDATE + dateFin + SEP + STARTINDEX + "1" + SEP
+                    + COUNT + "1");
+            HttpResponse response;
 
         try {
             String url = null;
@@ -129,7 +139,7 @@ public class SparkJobsStarter {
                         XPathConstants.STRING));
                 for (int i = 1; i < number; i += STEP) {
                     String key = "";
-                    String msg =  STREAMING_API_URL + BEGINDATE + dateDebut + SEP
+                    String msg = STREAMING_API_URL + BEGINDATE + dateDebut + SEP
                             + ENDDATE + dateFin + SEP + STARTINDEX + i + SEP
                             + COUNT + STEP;
                     KeyedMessage<String, String> data = new KeyedMessage<String, String>(topic, key, msg);
@@ -143,6 +153,12 @@ public class SparkJobsStarter {
                             + ENDDATE + dateFin + SEP + STARTINDEX + "1" + SEP
                             + COUNT + "1");
                     out.close();
+                    String key = "";
+                    String msg = STREAMING_API_URL + BEGINDATE + dateDebut + SEP
+                            + ENDDATE + dateFin + SEP + STARTINDEX + "1" + SEP
+                            + COUNT + "1";
+                    KeyedMessage<String, String> data = new KeyedMessage<String, String>(catchingTopic, key, msg);
+                    producer.send(data);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -163,6 +179,12 @@ public class SparkJobsStarter {
                         + ENDDATE + dateFin + SEP + STARTINDEX + "1" + SEP
                         + COUNT + "1");
                 out.close();
+                String key = "";
+                String msg = STREAMING_API_URL + BEGINDATE + dateDebut + SEP
+                        + ENDDATE + dateFin + SEP + STARTINDEX + "1" + SEP
+                        + COUNT + "1";
+                KeyedMessage<String, String> data = new KeyedMessage<String, String>(catchingTopic, key, msg);
+                producer.send(data);
             } catch (IOException a) {
                 a.printStackTrace();
             }
@@ -173,7 +195,12 @@ public class SparkJobsStarter {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
+
+        jssc.start();
+        jssc.awaitTermination();
+        }catch(Exception e) {
+            System.out.println("ERROOOOOOOOOOOOOOOOOOOOOOOOOOR: ");
+            e.printStackTrace();
+        }
     }
-
-
 }

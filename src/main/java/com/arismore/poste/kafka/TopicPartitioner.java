@@ -1,4 +1,4 @@
-package com.arismore.poste.kafka;
+package main.java.com.arismore.poste.kafka;
 
 /**
  * Created by mehdi on 9/30/15.
