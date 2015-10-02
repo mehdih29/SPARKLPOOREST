@@ -49,7 +49,7 @@ public class SparkJobsStarter {
     private static final long serialVersionUID = 2222111111L;
 
     static Logger LOG = Logger.getLogger(SparkJobsStarter.class);
-    private static String FILE_RECOVERY_WINDOWS = "/svdb/POC/_file_recovery_window";
+    private static String FILE_RECOVERY_WINDOWS = "/spark/POC/_file_recovery_window";
     private static DocumentBuilder builder = null;
 
     private static String topic = "urls";
@@ -80,8 +80,8 @@ public class SparkJobsStarter {
 
             props.put("metadata.broker.list", args[0]);
             props.put("serializer.class", "kafka.serializer.StringEncoder");
-            //props.put("partitioner.class", "main.java.com.arismore.poste.kafka.TopicPartitioner");
-            //props.put("request.required.acks", "1");
+            props.put("partitioner.class", "main.java.com.arismore.poste.kafka.TopicPartitioner");
+            props.put("request.required.acks", "1");
             ProducerConfig config = new ProducerConfig(props);
             producer = new Producer<String, String>(config);
 
@@ -99,7 +99,7 @@ public class SparkJobsStarter {
             CloseableHttpClient client = HttpClientBuilder.create().build();
             Date date = new Date();
 
-            Calendar cal = null;
+            Calendar cal = Calendar.getInstance();
             cal.setTime(date);
             cal.add(Calendar.MINUTE, -6);
             Date start = cal.getTime();
@@ -143,7 +143,8 @@ public class SparkJobsStarter {
                             + ENDDATE + dateFin + SEP + STARTINDEX + i + SEP
                             + COUNT + STEP;
                     KeyedMessage<String, String> data = new KeyedMessage<String, String>(topic, key, msg);
-                    producer.send(data);
+                    //JavaReceiverInputDStream<Status> receiverStream = jssc.
+                    //producer.send(data);
                 }
             } else {
                 try {
