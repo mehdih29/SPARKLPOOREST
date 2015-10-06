@@ -1,0 +1,58 @@
+<a:entry>
+  <a:title type="xhtml">
+    <div>
+      <span class="format">PF</span>
+      <span class="etat">CREE</span>
+    <span class="priorite">Non urgent</span><span class="id" title="imp">7F869948</span></div>
+  </a:title>
+  <a:id>http://ute.269650.prd.sie.courrier.intra.laposte.fr/UTE/enveloppe/v1/7F869948</a:id>
+  <a:updated>2014-12-02T12:14:24Z</a:updated>
+  <a:author>
+    <a:name>A04943</a:name>
+    
+  </a:author>
+  <a:content type="xhtml">
+    <div>
+      <ul class="traitement">
+        <li>
+          <span class="dateDebut">2014-12-01T08:25:19.841Z</span>
+          <span class="idMachineTri">6970</span>
+          <span class="entreeMachine">1-1</span>
+          <span class="idPlateforme">A04943</span>
+          <abbr class="programmeTri" title="29000-260-0-86-PF" id="397293">Départ</abbr>
+          <dl class="parametresTri">
+            
+            
+            <dt>triSanctionPartiel</dt>
+            <dd>0</dd>
+          </dl>
+          
+        <span class="etat">TERMINE</span><span class="receptacle" title="0" type="DEFINITIF" niveau="0">C11</span><span class="plateformeSuivante">A37580</span><span class="valeur_adresse_prioritaire">A21511</span><span class="type_adresse_prioritaire">bdis</span><span class="Cedex">non</span><span class="service">PAS DE SERVICE</span><div class="client"/><span class="datePublication">2014-12-01T08:28:10Z</span></li>
+      <li>
+          <span class="dateDebut">2014-12-02T12:14:24.124Z</span>
+          <span class="idMachineTri">6497</span>
+          <span class="entreeMachine">1-1</span>
+          <span class="idPlateforme">A37580</span>
+          <abbr class="programmeTri" title="29400-571-6-74-PF" id="396621">Arrivé</abbr>
+          <dl class="parametresTri">
+            
+            
+            <dt>triSanctionPartiel</dt>
+            <dd>0</dd>
+          </dl>
+          
+        <span class="etat">TERMINE</span><span class="receptacle" title="0" type="DEFINITIF" niveau="7">A24</span><span class="plateformeSuivante">A21511</span><span class="valeur_adresse_prioritaire">81995</span><span class="type_adresse_prioritaire">tournee</span><span class="Cedex">non</span><span class="service">PAS DE SERVICE</span><div class="client"/><span class="datePublication">2014-12-02T12:18:11Z</span></li></ul>
+    <ul class="adresses"><li title="imp" class="elue"><span class="type">OCR</span><span class="code">NM1JPNCC01V00BN00032-NUVOIE</span><span class="idRao">55505222TC</span><span class="typeRao">points</span><div class="libelleAvantInterpretation">DmbBZiVmMmbBZS1lwmYpZjBmwmZAF2YTZsJmFmbCZg9myTcRZsdmE2bCZgtm
+xWZBBGbEZgNmw2ZADGbJZhNmwmYdZsZlQBxmyWUfZsFjD2ZADmbBZg9mQBZm
+wmYLZsVmQBZmwmYTZsJmDGbJZg9myTQcZsk3C2bFOB5myGYTZsJmGWWZNcFm
+GGbKN0EGZsZmBmbGZglmyWYFZsVmATnBZkAeZshmEmbJYhNmwmYPZhxmyTcg
+Zsk1E2bCZhZmwmYWZsJmD2ZANzidN8ZmH2bBZhxmyTdAF2bJOA9mH2bBYx1i
+tzPGZg9mQQ==
+</div><span class="libelleApresInterpretationOcrPostal">
+
+
+32 RUE DE LA LIBERATION 
+
+55840 THIERVILLE SUR MEUSE </span><div class="client"><span class="codeAcheDistri">55840AGW32</span><span class="etat">NON RECONNU</span></div><span class="bdis">A21511</span><span class="case">H_3</span><span class="rang">371</span><span class="tournee">81995</span></li></ul><ul class="cab"><li class="sans_qualif">MDQ1MTgyMzg5OQ==</li></ul><div title="ci" abbr="CI 0457"><time>281114</time><address>69 AIN RHONE PIC</address></div></div>
+  </a:content>
+<a:published>2014-12-01T08:25:20Z</a:published></a:entry>

@@ -1,0 +1,2 @@
+docker run -P --name kafka -itd spotify/kafka
+docker run --name spark -v /spark -itd -P --link kafka -h sandbox sequenceiq/spark:1.4.0 bash

@@ -1,0 +1,54 @@
+<a:entry>
+  <a:title type="xhtml">
+    <div>
+      <span class="format">PF</span>
+      <span class="etat">CREE</span>
+    <span class="priorite">Urgent</span><span class="id" title="imp">76451708</span></div>
+  </a:title>
+  <a:id>http://ute.932440.prd.sie.courrier.intra.laposte.fr/UTE/enveloppe/v1/76451708</a:id>
+  <a:updated>2015-09-16T00:06:12Z</a:updated>
+  <a:author>
+    <a:name>A39660</a:name>
+    
+  </a:author>
+  <a:content type="xhtml">
+    <div>
+      <ul class="traitement">
+        <li>
+          <span class="dateDebut">2015-09-15T15:54:58.752Z</span>
+          <span class="idMachineTri">7360</span>
+          <span class="entreeMachine">1-1</span>
+          <span class="idPlateforme">A39660</span>
+          <abbr class="programmeTri" title="10000-951-0-101-PF" id="524755">Départ</abbr>
+          <dl class="parametresTri">
+            <dt>lot</dt>
+            <dd>IMPORT P1-PF</dd>
+            <dt>triSanctionPartiel</dt>
+            <dd>0</dd>
+            
+            
+          </dl>
+          
+        <span class="etat">TERMINE</span><span class="receptacle" title="0" lang="00" type="DEFINITIF" niveau="4">T57</span><span class="plateformeSuivante">A46451</span><span class="valeur_adresse_prioritaire">A06896</span><span class="type_adresse_prioritaire">bdis</span><span class="Cedex">non</span><span class="service">PAS DE SERVICE</span><div class="client"/><span class="datePublication">2015-09-15T16:02:14Z</span></li>
+      <li>
+          <span class="dateDebut">2015-09-16T00:06:11.155Z</span>
+          <span class="idMachineTri">7434</span>
+          <span class="entreeMachine">1-1</span>
+          <span class="idPlateforme">A46451</span>
+          <abbr class="programmeTri" title="14100-351-0-168-PF" id="525080">Arrivé</abbr>
+          <dl class="parametresTri">
+            
+            
+            <dt>triSanctionPartiel</dt>
+            <dd>0</dd>
+          </dl>
+          
+        <span class="etat">TERMINE</span><span class="receptacle" title="0" lang="01" type="DEFINITIF" niveau="1">D30</span><span class="plateformeSuivante">A06896</span><span class="valeur_adresse_prioritaire">A06896</span><span class="type_adresse_prioritaire">bdis</span><span class="Cedex">non</span><span class="service">PAS DE SERVICE</span><div class="client"/><span class="datePublication">2015-09-16T00:11:00Z</span></li></ul>
+    <ul class="adresses"><li title="imp" class="elue"><span class="type" typeOcr="2">OCR</span><span class="code">NM0ZP3TC01-CPCOM</span><span class="idRao">35023224H9</span><span class="typeRao">cp-commune</span><span class="libelleApresInterpretationOcrPostal">
+
+
+
+
+35137 BEDEE </span><div class="client"><span class="codeAcheDistri">35137ZAV22</span><span class="etat">NON RECONNU</span></div><span class="bdis">A06896</span></li></ul><span class="modele"/></div>
+  </a:content>
+<a:published>2015-09-15T15:54:59Z</a:published><a:link rel="alternate" href="http://ute.932440.prd.sie.courrier.intra.laposte.fr/UTE/enveloppe/v1/76451708/image/1/79848489?format=jpeg"/></a:entry>
