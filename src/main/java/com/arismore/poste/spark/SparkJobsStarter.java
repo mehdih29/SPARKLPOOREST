@@ -68,6 +68,7 @@ public class SparkJobsStarter {
         try {
             SparkConf sparkConf = new SparkConf().setAppName("JobStarter");
             JavaStreamingContext jssc = new JavaStreamingContext(sparkConf, Durations.seconds(60));
+            JavaDStream<String> receiverStream = jssc.textFileStream("file:///spark/POC/2");
 
             String STREAMING_API_URL = "http://national.cpn.prd.sie.courrier.intra.laposte.fr/National/enveloppes/v1/externe?";
             String SEP = "&";
@@ -89,12 +90,8 @@ public class SparkJobsStarter {
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
             factory.setNamespaceAware(true);
 
-            try {
-                builder = factory.newDocumentBuilder();
-            } catch (ParserConfigurationException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
+            builder = factory.newDocumentBuilder();
+
 
             CloseableHttpClient client = HttpClientBuilder.create().build();
             Date date = new Date();
@@ -143,8 +140,7 @@ public class SparkJobsStarter {
                             + ENDDATE + dateFin + SEP + STARTINDEX + i + SEP
                             + COUNT + STEP;
                     KeyedMessage<String, String> data = new KeyedMessage<String, String>(topic, key, msg);
-                    //JavaReceiverInputDStream<Status> receiverStream = jssc.
-                    //producer.send(data);
+                    producer.send(data);
                 }
             } else {
                 try {
@@ -164,6 +160,7 @@ public class SparkJobsStarter {
                     e.printStackTrace();
                 }
             }
+
         } catch (FileNotFoundException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -196,9 +193,9 @@ public class SparkJobsStarter {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
-
-        jssc.start();
-        jssc.awaitTermination();
+            receiverStream.print();
+            jssc.start();
+            jssc.awaitTermination();
         }catch(Exception e) {
             System.out.println("ERROOOOOOOOOOOOOOOOOOOOOOOOOOR: ");
             e.printStackTrace();
