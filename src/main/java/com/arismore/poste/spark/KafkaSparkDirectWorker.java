@@ -40,7 +40,6 @@ public final class KafkaSparkDirectWorker {
                     "  <topics> is a list of one or more kafka topics to consume from\n\n");
             System.exit(1);
         }
-
         String brokers = args[0];
         String topics = args[1];
 

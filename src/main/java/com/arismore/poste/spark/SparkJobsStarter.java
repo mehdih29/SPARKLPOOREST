@@ -2,13 +2,20 @@ package main.java.com.arismore.poste.spark;
 
 
 import kafka.javaapi.producer.Producer;
+import kafka.producer.KeyedMessage;
 import kafka.producer.ProducerConfig;
 import org.apache.spark.SparkConf;
+import org.apache.spark.api.java.JavaRDD;
+import org.apache.spark.api.java.function.Function;
+import org.apache.spark.api.java.function.VoidFunction;
 import org.apache.spark.streaming.Durations;
 import org.apache.spark.streaming.api.java.JavaDStream;
 import org.apache.spark.streaming.api.java.JavaStreamingContext;
 
 import javax.xml.parsers.DocumentBuilder;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.List;
 import java.util.Properties;
 
@@ -28,7 +35,13 @@ public class SparkJobsStarter {
     private static String catchingTopic = "catchingTopic";
     private static Producer<String, String> producer;
     private static Properties props = new Properties();
-
+    private static final String STREAMING_API_URL = "http://national.cpn.prd.sie.courrier.intra.laposte.fr/National/enveloppes/v1/externe?";
+    private static final String SEP = "&";
+    private static final String BEGINDATE = "dateDebut=";
+    private static final String ENDDATE = "dateFin=";
+    private static final String STARTINDEX = "startIndex=";
+    private static final String COUNT = "count=";
+    private static final int STEP = 1000;
 
     public static void main(String[] args) {
         if (args.length < 1) {
@@ -38,17 +51,11 @@ public class SparkJobsStarter {
             System.exit(1);
         }
         try {
-            String STREAMING_API_URL = "http://national.cpn.prd.sie.courrier.intra.laposte.fr/National/enveloppes/v1/externe?";
-            String SEP = "&";
-            String BEGINDATE = "dateDebut=";
-            String ENDDATE = "dateFin=";
-            String STARTINDEX = "startIndex=";
-            String COUNT = "count=";
-            int STEP = 1000;
+
 
             SparkConf sparkConf = new SparkConf().setAppName("JobStarter");
             JavaStreamingContext jssc = new JavaStreamingContext(sparkConf, Durations.seconds(60));
-            JavaDStream<List<String>> receiverStream = jssc.receiverStream(new HTTPCustomReceiver());
+            JavaDStream<List<String>> receiverStream = jssc.receiverStream(new HTTPJobStarterReceiver());
 
             props.put("metadata.broker.list", args[0]);
             props.put("serializer.class", "kafka.serializer.StringEncoder");
@@ -58,37 +65,49 @@ public class SparkJobsStarter {
             producer = new Producer<String, String>(config);
 
 
-                if (receiverStream != null) {
-                    receiverStream.persist();
-                    receiverStream.print();
+            if (receiverStream != null) {
+                //receiverStream.persist();
+                receiverStream.foreachRDD(new Function<JavaRDD<List<String>>, Void>() {
+                    public Void call(JavaRDD<List<String>> listJavaRDD) throws Exception {
+                        listJavaRDD.collect();
+                        listJavaRDD.foreach(new VoidFunction<List<String>>() {
+                            public void call(List<String> strings) throws Exception {
+                                Integer number = Integer.parseInt(strings.get(0));
+                                if (number != 0){
 
-                    /*for (int i = 1; i < number; i += STEP) {
-                        String key = "";
-                        String msg = STREAMING_API_URL + BEGINDATE + dateDebut + SEP
-                                + ENDDATE + dateFin + SEP + STARTINDEX + i + SEP
-                                + COUNT + STEP;
-                        KeyedMessage<String, String> data = new KeyedMessage<String, String>(topic, key, msg);
-                        producer.send(data);
-                    }*/
-                } else {
-                    System.out.println(receiverStream.toString());
-                    /*try {
-                        PrintWriter out = new PrintWriter(new FileWriter(
-                                FILE_RECOVERY_WINDOWS, true));
-                        out.println(STREAMING_API_URL + BEGINDATE + dateDebut + SEP
-                                + ENDDATE + dateFin + SEP + STARTINDEX + "1" + SEP
-                                + COUNT + "1");
-                        out.close();
-                        String key = "";
-                        String msg = STREAMING_API_URL + BEGINDATE + dateDebut + SEP
-                                + ENDDATE + dateFin + SEP + STARTINDEX + "1" + SEP
-                                + COUNT + "1";
-                        KeyedMessage<String, String> data = new KeyedMessage<String, String>(catchingTopic, key, msg);
-                        producer.send(data);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }*/
-                }
+                                    for (int i = 1; i < number; i += STEP) {
+                                        String key = "";
+                                        String msg = STREAMING_API_URL + BEGINDATE + strings.get(1) + SEP
+                                                + ENDDATE + strings.get(2) + SEP + STARTINDEX + i + SEP
+                                                + COUNT + STEP;
+                                        KeyedMessage<String, String> data = new KeyedMessage<String, String>(topic, key, msg);
+                                        producer.send(data);
+                                    }
+                                }else{
+                                    String key = "";
+                                    String msg = STREAMING_API_URL + BEGINDATE + strings.get(1) + SEP
+                                            + ENDDATE + strings.get(2) + SEP + STARTINDEX + "1" + SEP
+                                            + COUNT + "1";
+                                    KeyedMessage<String, String> data = new KeyedMessage<String, String>(catchingTopic, key, msg);
+                                    producer.send(data);
+                                    try {
+                                        PrintWriter out = new PrintWriter(new FileWriter(
+                                                FILE_RECOVERY_WINDOWS, true));
+                                        out.println(msg);
+                                        out.close();
+
+                                    } catch (IOException e) {
+                                        e.printStackTrace();
+                                    }
+                                }
+                            }
+                        });
+                        return null;
+                    }
+                });
+            } else {
+                System.out.println(" Problem Here: " + receiverStream.toString());
+            }
 
             jssc.start();
             jssc.awaitTermination();
