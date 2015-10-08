@@ -69,7 +69,6 @@ public class SparkJobsStarter {
                 //receiverStream.persist();
                 receiverStream.foreachRDD(new Function<JavaRDD<List<String>>, Void>() {
                     public Void call(JavaRDD<List<String>> listJavaRDD) throws Exception {
-                        listJavaRDD.collect();
                         listJavaRDD.foreach(new VoidFunction<List<String>>() {
                             public void call(List<String> strings) throws Exception {
                                 Integer number = Integer.parseInt(strings.get(0));

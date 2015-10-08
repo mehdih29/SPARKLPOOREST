@@ -4,6 +4,8 @@ package main.java.com.arismore.poste.spark;
  * Created by mehdi on 10/7/15.
  */
 
+import com.google.gson.GsonBuilder;
+import com.google.gson.Gson;
 import kafka.consumer.Consumer;
 import kafka.consumer.ConsumerConfig;
 import kafka.consumer.ConsumerIterator;
@@ -27,6 +29,7 @@ import org.xml.sax.SAXException;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
@@ -40,30 +43,50 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class HTTPUriGetReceiver extends Receiver<List<String>> {
+public class HTTPUriGetReceiver extends Receiver<Map<String, String>> {
 
     private ConsumerConnector consumer;
-    private ExecutorService executor;
-    String brokers = null;
-    String topics = null;
-    String groupId = null;
+    private static String brokers = null;
+    private static String topics = null;
+    private static String groupId = null;
+    private static String zookeeper = null;
+    static private Gson gson = null;
+    XPath xpath = null;
+    static DocumentBuilder builder = null;
 
-    public HTTPUriGetReceiver(String brokers, String topics, String groupId) {
+    public HTTPUriGetReceiver(String zookeeper, String topics, String groupId) {
         super(StorageLevel.MEMORY_AND_DISK_2());
-        this.brokers = brokers;
-        this.topics = topics;
-        this.groupId = groupId;
+        HTTPUriGetReceiver.topics = topics;
+        HTTPUriGetReceiver.groupId = groupId;
+       HTTPUriGetReceiver.zookeeper = zookeeper;
+        System.out.println(topics + "     " + zookeeper + "     " + groupId );
     }
 
     //Logger LOG = Logger.getLogger(this.getClass());
     public void onStart() {
         // Start the thread that receives data over a connectionHashSet<String> topicsSet = new HashSet<String>(Arrays.asList(topics.split(",")));
-        HashSet<String> topicsSet = new HashSet<String>(Arrays.asList(topics.split(",")));
+       // HashSet<String> topicsSet = new HashSet<String>(Arrays.asList(topics.split(",")));
         Properties kafkaParams = new Properties();
-        kafkaParams.put("metadata.broker.list", brokers);
+        //kafkaParams.put("metadata.broker.list", brokers);
+        kafkaParams.put("zookeeper.connect", zookeeper);
+         kafkaParams.put("group.id", groupId);
+        kafkaParams.put("zookeeper.session.timeout.ms", "500");
+        kafkaParams.put("zookeeper.sync.time.ms", "250");
+        kafkaParams.put("auto.commit.interval.ms", "1000");
         kafkaParams.put("group.id", groupId);
         this.consumer = Consumer.createJavaConsumerConnector(new ConsumerConfig(kafkaParams));
-        doConsume(3);
+        this.xpath = XPathFactory.newInstance().newXPath();
+        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        factory = DocumentBuilderFactory.newInstance();
+        factory.setNamespaceAware(true);
+        try {
+            HTTPUriGetReceiver.builder = factory.newDocumentBuilder();
+        } catch (ParserConfigurationException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        HTTPUriGetReceiver.gson = new GsonBuilder().create();
+        doConsume(1);
     }
     public void onStop() {
 
@@ -74,105 +97,89 @@ public class HTTPUriGetReceiver extends Receiver<List<String>> {
     public void doConsume(int threadCount) {
         Map<String, Integer> topicCount = new HashMap<String, Integer>();
         // Define thread count for each topic
-        topicCount.put(this.topics, new Integer(threadCount));
+        topicCount.put(HTTPUriGetReceiver.topics, threadCount);
         // Here we have used a single topic but we can also add multiple topics to topicCount MAP
         Map<String, List<KafkaStream<byte[], byte[]>>> consumerStreams = consumer.createMessageStreams(topicCount);
-        List<KafkaStream<byte[], byte[]>> streams = consumerStreams.get(this.topics);
+        List<KafkaStream<byte[], byte[]>> streams = consumerStreams.get(HTTPUriGetReceiver.topics);
         System.out.println("streams length: " + streams.size());
         // Launching the thread pool
-        executor = Executors.newFixedThreadPool(threadCount);
+        ExecutorService  executor = Executors.newFixedThreadPool(threadCount);
         //Creating an object messages consumption
         final CountDownLatch latch = new CountDownLatch(3);
         for (final KafkaStream stream : streams) {
             executor.submit(new Runnable() {
                 @Override
                 public void run() {
-                     DocumentBuilder builder = null;
                     ConsumerIterator<byte[], byte[]> consumerIte = stream.iterator();
                     String msg = null;
                     while (consumerIte.hasNext()) {
                         msg = new String(consumerIte.next().message());
-                        System.out.println("Message from thread :: " + Thread.currentThread().getName() + " -- " + new String(consumerIte.next().message()));
-                     try{
-                        CloseableHttpClient client = HttpClientBuilder.create().build();
+                        System.out.println("*****************************          Message from thread :: " + Thread.currentThread().getName() + " -- " + msg);
+                        try{
+                            CloseableHttpClient client = HttpClientBuilder.create().build();
 
-                HttpResponse response;
+                            HttpResponse response;
 
-                response = client.execute(new HttpGet(msg));
-                XPath xpath = XPathFactory.newInstance().newXPath();
-                DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-                factory.setNamespaceAware(true);
+                            Map<String, String> output = new HashMap<String, String>();
+                            response = client.execute(new HttpGet(msg));
+                            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+                            factory.setNamespaceAware(true);
 
-                builder = factory.newDocumentBuilder();
+                            builder = factory.newDocumentBuilder();
 
-                StatusLine status = response.getStatusLine();
+                            StatusLine status = response.getStatusLine();
+                            ParcelData parcel;
+                            String id;
+                            if (status.getStatusCode() == 200) {
 
-                if (status.getStatusCode() == 200) {
+                                InputStream inputStream = response.getEntity().getContent();
 
-                    InputStream inputStream = response.getEntity().getContent();
+                                Document doc = builder.parse(new InputSource(inputStream));
+                                xpath.setNamespaceContext(new UniversalNamespaceCache(doc, true));
 
-                    Document doc = builder.parse(new InputSource(inputStream));
-                    xpath.setNamespaceContext(new UniversalNamespaceCache(doc, true));
+                                NodeList entries = (NodeList) xpath.compile("/a:feed/a:entry")
+                                        .evaluate(doc, XPathConstants.NODESET);
+                                QueryEntry entry;
 
-                    NodeList entries = (NodeList) xpath.compile("/a:feed/a:entry")
-                            .evaluate(document, XPathConstants.NODESET);
-                    QueryEntry entry;
+                                if (entries.getLength() > 0) {
+                                    for (int i = 1; i <= entries.getLength(); i++) {
+                                        entry = new QueryEntry(doc, i, xpath);
+                                        for (int j = 0; j < entry.getParcels().size(); j++) {
+                                            parcel = (ParcelData) entry.getParcels().get(j);
+                                            id = parcel.getIsie() + "|"
+                                                    + parcel.getTraitement().getId();
+                                            output.put(id,
+                                                    HTTPUriGetReceiver.gson.toJson(parcel));
+                                        }
+                                    }
+                                }
 
-                    if (entries.getLength() > 0) {
-                        for (int i = 1; i <= entries.getLength(); i++) {
-                            entry = new QueryEntry(document, i, xpath);
-                            for (int j = 0; j < entry.getParcels().size(); j++) {
-                                parcel = (ParcelData) entry.getParcels().get(j);
-                                id = parcel.getIsie() + "|"
-                                        + parcel.getTraitement().getId();
-                                this.collector.emit(tuple, new Values(id,
-                                        XmlToJsonBolt.gson.toJson(parcel)));
+                            } else {
+                                output.put("0", msg);
+                                store(output);
                             }
+
+                        } catch (FileNotFoundException e) {
+                            // TODO Auto-generated catch block
+                            e.printStackTrace();
+                        } catch (UnsupportedEncodingException e) {
+                            // TODO Auto-generated catch block
+                            e.printStackTrace();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+
+                        } catch (SAXException e) {
+                            // TODO Auto-generated catch block
+                            e.printStackTrace();
+                        } catch (XPathExpressionException e) {
+                            // TODO Auto-generated catch block
+                            e.printStackTrace();
+                        }catch (Exception e) {
+                            System.out.println("exception thrown while attempting to fetch CPN data**********************");
+                            e.printStackTrace();
+                            //LOG.error("Error in communication with the OREST TAE api [" + get.getURI().toString() + "]");
+                            //LOG.trace(null, e);
                         }
-                    }
-
-
-                    int number = Integer.parseInt((String) xpath.compile(
-                            "/a:feed/openSearch:totalResults").evaluate(doc,
-                            XPathConstants.STRING));
-                    output.add(Integer.toString(number));
-                    output.add(dateDebut);
-                    output.add(dateFin);
-                    store(output);
-
-                } else {
-                    output.add("0");
-                    output.add(dateDebut);
-                    output.add(dateFin);
-                    store(output);
-                }
-
-            } catch (FileNotFoundException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            } catch (UnsupportedEncodingException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
-
-            } catch (SAXException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            } catch (XPathExpressionException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }catch (Exception e) {
-                System.out.println("exception thrown while attempting to fetch CPN data**********************");
-                e.printStackTrace();
-                //LOG.error("Error in communication with the OREST TAE api [" + get.getURI().toString() + "]");
-                //LOG.trace(null, e);
-            }finally {
-                output.add("0");
-                output.add(dateDebut);
-                output.add(dateFin);
-                store(output);
-            }
                     }
                     latch.countDown();
                 }
@@ -188,8 +195,5 @@ public class HTTPUriGetReceiver extends Receiver<List<String>> {
         if (consumer != null) {
             consumer.shutdown();
         }
-
-        if (executor != null)
-            executor.shutdown();
     }
 }
